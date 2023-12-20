@@ -9,14 +9,15 @@ namespace Spacebattle
     public class CollisionDetectorTests
     {
         [Fact]
-        public void CollissionDetectorSholudFindKnownPatterns()
+        public void CollissionDetectorShouldFindKnownPatterns()
         {
-
             var detector = new CollisionDetector<int>();
 
             bool wasDetected = false;
             Action action = () => { wasDetected = true; };
-            // сюда добавить подписку на событие - коллизия обнаружена
+        
+            // Подписываем делегат на событие Detected
+            detector.Detected += action;
 
             detector.Add(new int[] { 2, 7, 8, -3 });
             detector.Add(new int[] { 2, 7, 8, 2 });
@@ -24,24 +25,27 @@ namespace Spacebattle
 
             detector.Detect(new int[] { 2, 7, 8, 2 });
 
+            // Проверяем, что событие было обнаружено
             Assert.True(wasDetected);
         }
 
         [Fact]
-        public void CollissionDetectorSholudNotFindUnknownPatterns()
+        public void CollissionDetectorShouldNotFindUnknownPatterns()
         {
-
             var detector = new CollisionDetector<int>();
 
             bool wasDetected = false;
             Action action = () => { wasDetected = true; };
-            // сюда добавить подписку на событие - коллизия обнаружена
+
+            // Подписываем делегат на событие Detected
+            detector.Detected += action;
 
             detector.Add(new int[] { 2, 7, 8, -3 });
             detector.Add(new int[] { 2, 7, 8, 15 });
 
             detector.Detect(new int[] { 2, 7, 8, 2 });
 
+            // Проверяем, что событие не было обнаружено
             Assert.False(wasDetected);
         }
     }
