@@ -1,64 +1,72 @@
-﻿using System.Linq;
-using System;
-using System.Linq.Expressions;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 
 
 namespace Spacebattle
 {
     public class Vector<T> : IEnumerable<T>
     {
-        private T[] _values;
+        private readonly T[] _values;
 
         public Vector(IEnumerable<T> initialValues)
         {
-            // Задача 1.
+            if (initialValues == null || !initialValues.Any())
+                throw new ArgumentException("Переданный список равен NULL или пуст", nameof(initialValues));
+
+            _values = initialValues.ToArray();
         }
 
-        public int Size
-        {
-            get
-            {
-                //Задача 2
-                return 0; // Это заглушка, чтобы компилировался код
-            }
-        }
+        public int Size => _values.Length;
 
         public static implicit operator Vector<T>(T[] a)
         {
-            //Задача 3
-            return null; // Это заглушка, чтобы компилировался код
+            return new Vector<T>(a);
         }
 
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            //Задача 4
-            return null; // Это заглушка, чтобы компилировался код
-        }
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => _values.AsEnumerable().GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            //Задача 4
-            return null; // Это заглушка, чтобы компилировался код
-        }
+        IEnumerator IEnumerable.GetEnumerator() => _values.GetEnumerator();
 
-        public override string ToString()
-        {
-            //Задача 5
-            return string.Empty; // Это заглушка, чтобы компилировался код
-        }
+        public override string ToString() => $"({string.Join(", ", _values)})";
 
         public static T[] Parse(string value, Func<string, T> parse)
         {
-            //Задача 6
-            return new T[0]; // Это заглушка, чтобы компилировался код
+            var result = new List<T>();
+            if (!value.StartsWith('(') || !value.EndsWith(')'))
+                throw new FormatException("Строка должна начинаться и заканчиваться круглыми скобками");
+
+            value = value[1..^1];
+            var contentArray = value.Split(", ");
+            foreach (var content in contentArray)
+            {
+                try
+                {
+                    var elemmentOfVector = parse(content);
+                    result.Add(elemmentOfVector);
+                }
+                catch
+                {
+                    throw new FormatException("Некорректный формат одного из элементов");
+                }
+            }
+
+            return result.ToArray();
         }
 
         public static Vector<T> operator +(Vector<T> a, Vector<T> b)
         {
-            //Задача 7
-            return null; // Это заглушка, чтобы компилировался код
+            if (a.Size != b.Size)
+                throw new ArgumentException("Вектора имеют разные размеры");
+
+            var elements = new List<T>();
+            for (var i = 0; i < a.Size; i++)
+            {
+                dynamic elementOfA = a.ElementAt(i);
+                dynamic elementOfB = b.ElementAt(i);
+                dynamic summ = elementOfA + elementOfB;
+                elements.Add(summ);
+            }
+
+            return new Vector<T>(elements);
         }
 
     }
