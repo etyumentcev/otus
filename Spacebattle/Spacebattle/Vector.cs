@@ -3,7 +3,7 @@ using System;
 using System.Linq.Expressions;
 using System.Collections;
 using System.Collections.Generic;
-
+using System.Text;
 
 namespace Spacebattle
 {
@@ -13,53 +13,79 @@ namespace Spacebattle
 
         public Vector(IEnumerable<T> initialValues)
         {
-            // Задача 1.
+            if (initialValues == null || initialValues?.Count() == 0)
+                throw new ArgumentException("Вектор нельзя инициализировать пустым массивом!");
+            _values = initialValues?.ToArray();
+            Size = _values.Length;
         }
 
-        public int Size
-        {
-            get
-            {
-                //Задача 2
-                return 0; // Это заглушка, чтобы компилировался код
-            }
-        }
+        public int Size { get; private set; }
 
         public static implicit operator Vector<T>(T[] a)
         {
-            //Задача 3
-            return null; // Это заглушка, чтобы компилировался код
+            return new Vector<T>(a);
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
-            //Задача 4
-            return null; // Это заглушка, чтобы компилировался код
+            int position = 0;
+            foreach (var item in _values)
+            {
+                position++;
+                yield return item;
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            //Задача 4
-            return null; // Это заглушка, чтобы компилировался код
+            return _values.GetEnumerator();
         }
 
         public override string ToString()
         {
-            //Задача 5
-            return string.Empty; // Это заглушка, чтобы компилировался код
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append('(');
+            foreach (var item in _values) 
+            {
+                if (stringBuilder.Length > 1) 
+                {
+                    stringBuilder.Append(", ");
+                }
+                stringBuilder.Append(item);
+            }
+            stringBuilder.Append(')');
+            return stringBuilder.ToString();
         }
 
         public static T[] Parse(string value, Func<string, T> parse)
         {
-            //Задача 6
-            return new T[0]; // Это заглушка, чтобы компилировался код
+            if (value[0] != '(' | value[value.Length - 1] != ')')
+                throw new FormatException(string.Format("{0} не верный формат для типа {1}!", value, typeof(T[]).ToString()));
+
+            string tmpStr = value[1..^1].Trim();
+
+            string[] items = tmpStr.Split(new char[] { ',' });
+            var values = items.Select(s => parse(s.Trim()));
+            return values.ToArray();
+        }
+
+        static TT Add<TT>(TT x, TT y)
+        {
+            dynamic dx = x, dy = y;
+            return dx + dy;
         }
 
         public static Vector<T> operator +(Vector<T> a, Vector<T> b)
         {
-            //Задача 7
-            return null; // Это заглушка, чтобы компилировался код
-        }
+            if (a.Size != b.Size)
+                throw new ArgumentException("Размерности векторов не совпадают!");
+            T[] values = new T[a.Size];
+            for (int i = 0; i < a.Size; i++)
+            {
 
+                values[i] = Add(a._values[i], b._values[i]);
+            }
+            return new Vector<T>(values);
+        }
     }
 }
