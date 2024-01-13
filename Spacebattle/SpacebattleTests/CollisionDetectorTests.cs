@@ -16,7 +16,8 @@ namespace Spacebattle
 
             bool wasDetected = false;
             Action action = () => { wasDetected = true; };
-            // сюда добавить подписку на событие - коллизия обнаружена
+
+            detector.OnCollisionDetected += action.Invoke;
 
             detector.Add(new int[] { 2, 7, 8, -3 });
             detector.Add(new int[] { 2, 7, 8, 2 });
@@ -30,12 +31,12 @@ namespace Spacebattle
         [Fact]
         public void CollissionDetectorSholudNotFindUnknownPatterns()
         {
-
             var detector = new CollisionDetector<int>();
 
             bool wasDetected = false;
             Action action = () => { wasDetected = true; };
-            // сюда добавить подписку на событие - коллизия обнаружена
+
+            detector.OnCollisionDetected += action.Invoke;
 
             detector.Add(new int[] { 2, 7, 8, -3 });
             detector.Add(new int[] { 2, 7, 8, 15 });
