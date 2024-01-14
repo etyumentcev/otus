@@ -2,23 +2,40 @@
 {
     public class CollisionDetector<T>
     {
-        private readonly List<Vector<T>> _vectors = new();
+        private readonly VectorNode<T> vectorTrie = new(default);
 
         public delegate void CollisionDetectedHandler();
 
         public event CollisionDetectedHandler OnCollisionDetected;
 
-        public void Add(IEnumerable<T> sample) => _vectors.Add(new Vector<T>(sample));
+        public void Add(IEnumerable<T> sample)
+        {
+            var currentLevel = vectorTrie;
+            for (var i = 0; i < sample.Count(); i++)
+            {
+                var element = sample.ElementAt(i);
+                if (!currentLevel.Children.ContainsKey(element))
+                {
+                    currentLevel.Children.Add(element, new VectorNode<T>(element));
+                }
+                currentLevel = currentLevel.Children[element];
+            }
+        }
 
         public void Detect(IEnumerable<T> pattern)
         {
-            var patternVector = new Vector<T>(pattern);
-
-            foreach (var vector in _vectors)
+            var currentLevel = vectorTrie;
+            for (var i = 0; i < pattern.Count(); i++)
             {
-                if (vector.Equals(patternVector))
-                    OnCollisionDetected?.Invoke();
+                var element = pattern.ElementAt(i);
+                if (!currentLevel.Children.ContainsKey(element))
+                {
+                    return;
+                }
+                currentLevel = currentLevel.Children[element];
             }
+
+            OnCollisionDetected.Invoke();
         }
     }
 }
