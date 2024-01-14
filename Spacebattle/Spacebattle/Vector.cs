@@ -1,65 +1,97 @@
-﻿using System.Linq;
-using System;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Collections;
-using System.Collections.Generic;
+using System.Text;
 
 
 namespace Spacebattle
 {
     public class Vector<T> : IEnumerable<T>
     {
-        private T[] _values;
+        private static readonly Func<T, T, T> _addFunc = CreateAdd();
+        private readonly T[] _values;
 
         public Vector(IEnumerable<T> initialValues)
         {
-            // Задача 1.
+            if (initialValues is null || !initialValues.Any())
+            {
+                throw new ArgumentException("Incorrect initial values");
+            }
+
+            _values = initialValues.ToArray();
         }
 
-        public int Size
-        {
-            get
-            {
-                //Задача 2
-                return 0; // Это заглушка, чтобы компилировался код
-            }
-        }
+        public int Size => _values.Length;
 
         public static implicit operator Vector<T>(T[] a)
         {
-            //Задача 3
-            return null; // Это заглушка, чтобы компилировался код
+            return new Vector<T>(a);
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
-            //Задача 4
-            return null; // Это заглушка, чтобы компилировался код
+            return ((IEnumerable<T>)_values).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            //Задача 4
-            return null; // Это заглушка, чтобы компилировался код
+            return _values.GetEnumerator();
         }
 
         public override string ToString()
         {
-            //Задача 5
-            return string.Empty; // Это заглушка, чтобы компилировался код
+            var sb = new StringBuilder();
+            sb.Append('(');
+            sb.AppendJoin(", ", _values);
+            sb.Append(')');
+
+            return sb.ToString();
         }
 
         public static T[] Parse(string value, Func<string, T> parse)
         {
-            //Задача 6
-            return new T[0]; // Это заглушка, чтобы компилировался код
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new FormatException("Input string cannot be null or empty");
+            }
+
+            if (!value.StartsWith('(') || !value.EndsWith(')') || value.Length < 3)
+            {
+                throw new FormatException("Input string is in an incorrect format");
+            }
+
+            var coordinates = value.Trim('(', ')').Split(", ");
+            
+            return coordinates
+                .Select(parse)
+                .ToArray();
         }
 
         public static Vector<T> operator +(Vector<T> a, Vector<T> b)
         {
-            //Задача 7
-            return null; // Это заглушка, чтобы компилировался код
+            if (a.Size != b.Size || a is null || b is null)
+            {
+                throw new ArgumentException("The vectors must have the same dimension");
+            }
+            
+            var resultValues = new T[a.Size];
+            for (var i = 0; i < a.Size; i++)
+            {
+                resultValues[i] = _addFunc(a._values[i], b._values[i]);
+            }
+
+            return new Vector<T>(resultValues);
         }
 
+        private static Func<T, T, T> CreateAdd()
+        {
+            var ap = Expression.Parameter(typeof(T), "a");
+            var bp = Expression.Parameter(typeof(T), "b");
+
+            var operationResult = Expression.Add(ap, bp);
+
+            var lambda = Expression.Lambda<Func<T, T, T>>(operationResult, ap, bp);
+
+            return lambda.Compile();
+        }
     }
 }
