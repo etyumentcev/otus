@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Spacebattle
+﻿namespace Spacebattle
 {
     public class CollisionDetectorTests
     {
@@ -17,6 +11,7 @@ namespace Spacebattle
             bool wasDetected = false;
             Action action = () => { wasDetected = true; };
             // сюда добавить подписку на событие - коллизия обнаружена
+            detector.OnCollisionDetected += action;
 
             detector.Add(new int[] { 2, 7, 8, -3 });
             detector.Add(new int[] { 2, 7, 8, 2 });
@@ -36,6 +31,7 @@ namespace Spacebattle
             bool wasDetected = false;
             Action action = () => { wasDetected = true; };
             // сюда добавить подписку на событие - коллизия обнаружена
+            detector.OnCollisionDetected += action;
 
             detector.Add(new int[] { 2, 7, 8, -3 });
             detector.Add(new int[] { 2, 7, 8, 15 });
