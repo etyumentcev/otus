@@ -1,14 +1,16 @@
 ﻿namespace Spacebattle
 {
+    internal delegate PrefixTreeNode<T> GetNextNode<T>(PrefixTreeNode<T> currentNode, T nextValue);
+
     public class CollisionDetector<T>
     {
         public event Action OnCollisionDetected;
 
         private PrefixTreeNode<T> _treeRootNode;
 
-        public CollisionDetector() 
+        public CollisionDetector()
         {
-            _treeRootNode = new PrefixTreeNode<T>(default(T), false);
+            _treeRootNode = new PrefixTreeNode<T>(default, GetIntermediateNode);
         }
 
         public void Add(IEnumerable<T> sample)
@@ -18,46 +20,58 @@
             {
                 if (i == sample.Count() - 1)
                 {
-                    currentNode.AddChildren(sample.ElementAt(i), true);
+                    currentNode.AddChildren(sample.ElementAt(i), GetEndNode);
                     break;
                 }
 
-                if (currentNode.Children.Any(_ => _.Key.Equals(sample.ElementAt(i))))
-                {
-                    var child = currentNode.Children.Where(_ => _.Key.Equals(sample.ElementAt(i))).FirstOrDefault();
-                    currentNode = child.Value;
+                var child = currentNode.GetNextNodeFunc(currentNode, sample.ElementAt(i));
+
+                if (child != null)
+                { 
+                    currentNode = child;
                     continue;
                 }
 
-                currentNode = currentNode.AddChildren(sample.ElementAt(i), false);
+                currentNode = currentNode.AddChildren(sample.ElementAt(i), GetIntermediateNode);
             }
         }
 
         public void Detect(IEnumerable<T> pattern)
         {
             var currentNode = _treeRootNode;
-            for (var i = 0; i <= pattern.Count(); i++)
+            var i = 0;
+            while (currentNode != null)
             {
-                if (i == pattern.Count())
-                {
-                    if (currentNode.IsEndNode)
-                    {
-                        OnCollisionDetected?.Invoke();
-                    }
+                var child = currentNode.GetNextNodeFunc(currentNode, i < pattern.Count() ? pattern.ElementAt(i) : default);
 
-                    break;
-                }
-
-                if (currentNode.Children.Any(_ => _.Key.Equals(pattern.ElementAt(i))))
+                if (child != null)
                 {
-                    var child = currentNode.Children.Where(_ => _.Key.Equals(pattern.ElementAt(i))).FirstOrDefault();
-                    currentNode = child.Value;
+                    currentNode = child;
+                    i++;
                     continue;
                 }
 
                 break;
             }
 
+        }
+
+        private PrefixTreeNode<T> GetIntermediateNode(PrefixTreeNode<T> currentNode, T nextValue)
+        {
+            if (currentNode.Children.Any(_ => _.Key.Equals(nextValue)))
+            {
+                var child = currentNode.Children.Where(_ => _.Key.Equals(nextValue)).FirstOrDefault();
+                return child.Value;
+            }
+
+            return null;
+        }
+
+        private PrefixTreeNode<T> GetEndNode(PrefixTreeNode<T> currentNode, T nextValue)
+        {
+            OnCollisionDetected?.Invoke();
+
+            return null;
         }
     }
 }

@@ -2,22 +2,22 @@
 {
     internal class PrefixTreeNode<T>
     {
-        public PrefixTreeNode(T value, bool isEndNode) 
+        public PrefixTreeNode(T value, GetNextNode<T> getNextNodeFunc) 
         {
             Value = value;
-            IsEndNode = isEndNode;
+            GetNextNodeFunc = getNextNodeFunc;
 
             Children = new Dictionary<T, PrefixTreeNode<T>>();
         } 
         public T Value { get; }
 
-        public bool IsEndNode { get; }
+        public GetNextNode<T> GetNextNodeFunc { get; }
 
         public Dictionary<T, PrefixTreeNode<T>> Children { get; }
 
-        public PrefixTreeNode<T> AddChildren(T value, bool isEndNode)
+        public PrefixTreeNode<T> AddChildren(T value, GetNextNode<T> getNextNodeFunc)
         {
-            Children.Add(value, new PrefixTreeNode<T>(value, isEndNode));
+            Children.Add(value, new PrefixTreeNode<T>(value, getNextNodeFunc));
 
             return Children[value];
         }
