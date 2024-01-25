@@ -17,7 +17,7 @@ namespace Spacebattle
             bool wasDetected = false;
             Action action = () => { wasDetected = true; };
             // сюда добавить подписку на событие - коллизия обнаружена
-
+            detector.Detected += action;
             detector.Add(new int[] { 2, 7, 8, -3 });
             detector.Add(new int[] { 2, 7, 8, 2 });
             detector.Add(new int[] { 2, 7, 8, 15 });
@@ -36,7 +36,7 @@ namespace Spacebattle
             bool wasDetected = false;
             Action action = () => { wasDetected = true; };
             // сюда добавить подписку на событие - коллизия обнаружена
-
+            detector.Detected += action;
             detector.Add(new int[] { 2, 7, 8, -3 });
             detector.Add(new int[] { 2, 7, 8, 15 });
 
