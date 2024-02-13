@@ -1,4 +1,5 @@
 ﻿using OTUS.HomeWorks.PluginInterfaces;
+using System.Collections.Concurrent;
 using System.Reflection;
 
 namespace PluginLoader
@@ -13,9 +14,53 @@ namespace PluginLoader
             Console.ReadKey();
             Console.WriteLine();
 
-            var plugin = LoadPlugin();
-            plugin.Load();
-            Console.WriteLine("Плагин загружен");
+            var queue = new ConcurrentQueue<IPlugin>();
+            for (var i = 0; i < 12;  i++)
+            {
+                var plugin = LoadPlugin();
+                if (plugin == null)
+                {
+                    Console.WriteLine($"Не удалось найти плагин №{i}");
+                    continue;
+                }
+                plugin.SetNumber(i);
+                queue.Enqueue(plugin);
+            }
+
+            Thread thread = new Thread(() =>
+            {
+                var maxCount = queue.Count * 2;
+                var count = 0;
+                IPlugin item;
+                while (queue.TryDequeue(out item))
+                {
+                    try
+                    {
+                        item.Load();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"При загрузке плагина произошла ошибка: {ex.Message}. Он будет загружен повторно позднее.");
+                        queue.Enqueue(item);
+                    }
+
+                    count++;
+                    if (count >= maxCount)
+                    {
+                        Console.WriteLine($"Количество попыток загрузки плагинов превысило максимальное значение.");
+                        break;
+                    }
+                }
+            });
+
+            thread.Start();
+            thread.Join();
+
+            if (queue.IsEmpty)
+                Console.WriteLine("Все плагины загружены.");
+            else
+                Console.WriteLine($"Не загрузилось плагинов: {queue.Count}. Вам просто не повезло, попробуйте ещё раз.");
+
         }
 
         private static IPlugin LoadPlugin()
