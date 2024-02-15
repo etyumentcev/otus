@@ -9,6 +9,5 @@
         /// Загрузка плагина
         /// </summary>
         void Load();
-        void SetNumber(int i);
     }
 }

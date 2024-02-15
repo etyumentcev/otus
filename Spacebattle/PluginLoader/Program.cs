@@ -10,12 +10,66 @@ namespace PluginLoader
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Положите плагин Spacebattle.dll в папку C:\\Temp\\Plugin и нажмите любую кнопку.");
-            Console.ReadKey();
-            Console.WriteLine();
+            Console.WriteLine("Положите плагин Spacebattle.dll в папку C:\\Temp\\Plugin и нажмите Enter.");
+            Console.ReadLine();
 
+            var queue = GeneratePluginQueue();
+            var success = TryRunPluginQueue(queue);
+
+            if (success)
+                Console.WriteLine("Все плагины загружены.");
+            else
+                Console.WriteLine(
+                    $"Часть плагинов так и не удалось загрузить. " +
+                    $"Вам просто не повезло, попробуйте ещё раз.");
+        }
+
+        private static bool TryRunPluginQueue(ConcurrentQueue<IPlugin> queue)
+        {
+            var nextQueue = new ConcurrentQueue<IPlugin>();
+            Thread thread = new Thread(() =>
+            {
+                while (queue.Count > 0)
+                {
+                    var queueCount = queue.Count;
+
+                    IPlugin item;
+                    while (queue.TryDequeue(out item))
+                    {
+                        try
+                        {
+                            item.Load();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"При загрузке плагина произошла ошибка: {ex.Message}. Он будет загружен повторно позднее.");
+                            nextQueue.Enqueue(item);
+                        }
+                    }
+                    Console.WriteLine($"=====");
+
+                    if (queueCount == nextQueue.Count)
+                        break;
+
+                    if (nextQueue.Any())
+                        Console.WriteLine($"Часть плагинов не были загружены. Предпринимается повторная попытка их загрузить.");
+
+                    queue = nextQueue;
+                    nextQueue = new ConcurrentQueue<IPlugin>();
+                }
+
+            });
+
+            thread.Start();
+            thread.Join();
+
+            return nextQueue.IsEmpty;
+        }
+
+        private static ConcurrentQueue<IPlugin> GeneratePluginQueue()
+        {
             var queue = new ConcurrentQueue<IPlugin>();
-            for (var i = 0; i < 12;  i++)
+            for (var i = 0; i < 12; i++)
             {
                 var plugin = LoadPlugin();
                 if (plugin == null)
@@ -23,44 +77,10 @@ namespace PluginLoader
                     Console.WriteLine($"Не удалось найти плагин №{i}");
                     continue;
                 }
-                plugin.SetNumber(i);
                 queue.Enqueue(plugin);
             }
 
-            Thread thread = new Thread(() =>
-            {
-                var maxCount = queue.Count * 2;
-                var count = 0;
-                IPlugin item;
-                while (queue.TryDequeue(out item))
-                {
-                    try
-                    {
-                        item.Load();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"При загрузке плагина произошла ошибка: {ex.Message}. Он будет загружен повторно позднее.");
-                        queue.Enqueue(item);
-                    }
-
-                    count++;
-                    if (count >= maxCount)
-                    {
-                        Console.WriteLine($"Количество попыток загрузки плагинов превысило максимальное значение.");
-                        break;
-                    }
-                }
-            });
-
-            thread.Start();
-            thread.Join();
-
-            if (queue.IsEmpty)
-                Console.WriteLine("Все плагины загружены.");
-            else
-                Console.WriteLine($"Не загрузилось плагинов: {queue.Count}. Вам просто не повезло, попробуйте ещё раз.");
-
+            return queue;
         }
 
         private static IPlugin LoadPlugin()
