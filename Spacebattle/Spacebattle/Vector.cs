@@ -4,7 +4,6 @@ using System.Linq.Expressions;
 using System.Collections;
 using System.Collections.Generic;
 
-
 namespace Spacebattle
 {
     public class Vector<T> : IEnumerable<T>
@@ -13,7 +12,13 @@ namespace Spacebattle
 
         public Vector(IEnumerable<T> initialValues)
         {
-            // Задача 1.
+            if(initialValues == null)
+                throw new ArgumentNullException(nameof(initialValues));
+
+            if (initialValues.Count() == 0)
+                throw new ArgumentException("Размерность вектора должна быть большей нуля");
+
+            _values = initialValues.ToArray();
         }
 
         public int Size
@@ -21,44 +26,73 @@ namespace Spacebattle
             get
             {
                 //Задача 2
-                return 0; // Это заглушка, чтобы компилировался код
+                return _values.Length;
             }
         }
 
         public static implicit operator Vector<T>(T[] a)
         {
             //Задача 3
-            return null; // Это заглушка, чтобы компилировался код
+            return new Vector<T>(a);
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             //Задача 4
-            return null; // Это заглушка, чтобы компилировался код
+            foreach(T t in _values)
+                yield return t;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             //Задача 4
-            return null; // Это заглушка, чтобы компилировался код
+            return _values.GetEnumerator();
         }
 
         public override string ToString()
         {
             //Задача 5
-            return string.Empty; // Это заглушка, чтобы компилировался код
+            return "(" + string.Join(", ", _values.Select(x => x.ToString())) + ")";
         }
 
         public static T[] Parse(string value, Func<string, T> parse)
         {
             //Задача 6
-            return new T[0]; // Это заглушка, чтобы компилировался код
+            if(value == null) throw new ArgumentNullException("value");
+            
+            value = value.Trim(new char[] {'(',')'});
+            var elems = value.Split(", ");
+            if (elems.Length == 0) throw 
+                    new ArgumentException("Не верный формат или вектор не содержит ни одного элемента");
+
+            return elems.Select(x => parse(x)).ToArray();
+        }
+
+        private static Func<T, T, T> CreateAdd()
+        {
+            ParameterExpression ap = Expression.Parameter(typeof(T), "a");
+            ParameterExpression bp = Expression.Parameter(typeof(T), "b");
+
+            Expression operationResult = Expression.Add(ap, bp);
+
+            Expression<Func<T, T, T>> lambda = Expression.Lambda<Func<T, T, T>>(operationResult, ap, bp);
+
+            Func<T, T, T> add = lambda.Compile();
+            return add;
         }
 
         public static Vector<T> operator +(Vector<T> a, Vector<T> b)
         {
             //Задача 7
-            return null; // Это заглушка, чтобы компилировался код
+
+            if (a == null) throw new ArgumentNullException("a");
+            if (b == null) throw new ArgumentNullException("b");
+
+            if (a.Size != b.Size) 
+                throw new ArgumentException("Операция невозможна. Размерности векторов не совпадают.");
+
+           
+            return new Vector<T>(a._values.Zip(b._values, CreateAdd()));
         }
 
     }
