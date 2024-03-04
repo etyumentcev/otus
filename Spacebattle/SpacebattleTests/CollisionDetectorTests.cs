@@ -17,6 +17,7 @@ namespace Spacebattle
             bool wasDetected = false;
             Action action = () => { wasDetected = true; };
             // сюда добавить подписку на событие - коллизия обнаружена
+            detector.OnDetected += action;
 
             detector.Add(new int[] { 2, 7, 8, -3 });
             detector.Add(new int[] { 2, 7, 8, 2 });
@@ -36,11 +37,52 @@ namespace Spacebattle
             bool wasDetected = false;
             Action action = () => { wasDetected = true; };
             // сюда добавить подписку на событие - коллизия обнаружена
+            detector.OnDetected += action;
 
             detector.Add(new int[] { 2, 7, 8, -3 });
             detector.Add(new int[] { 2, 7, 8, 15 });
 
             detector.Detect(new int[] { 2, 7, 8, 2 });
+
+            Assert.False(wasDetected);
+        }
+
+
+        [Fact]
+        public void CollissionDetectorSholudFindKnownPatternsVector()
+        {
+
+            var detector = new CollisionDetector<int>();
+
+            bool wasDetected = false;
+            Action action = () => { wasDetected = true; };
+            // сюда добавить подписку на событие - коллизия обнаружена
+            detector.OnDetected += action;
+
+            detector.Add(new Vector<int>(new int[] { 2, 7, 8, -3 }));
+            detector.Add(new Vector<int>(new int[] { 2, 7, 8, 2 }));
+            detector.Add(new Vector<int>(new int[] { 2, 7, 8, 15 }));
+
+            detector.Detect(new Vector<int>(new int[] { 2, 7, 8, 2 }));
+
+            Assert.True(wasDetected);
+        }
+
+        [Fact]
+        public void CollissionDetectorSholudNotFindUnknownPatternsVector()
+        {
+
+            var detector = new CollisionDetector<int>();
+
+            bool wasDetected = false;
+            Action action = () => { wasDetected = true; };
+            // сюда добавить подписку на событие - коллизия обнаружена
+            detector.OnDetected += action;
+
+            detector.Add(new Vector<int>(new int[] { 2, 7, 8, -3 }));
+            detector.Add(new Vector<int>(new int[] { 2, 7, 8, 15 }));
+
+            detector.Detect(new Vector<int>(new int[] { 2, 7, 8, 2 }));
 
             Assert.False(wasDetected);
         }
