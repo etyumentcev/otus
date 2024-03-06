@@ -17,9 +17,10 @@ public class CommandExecutorTests
         }
         var executor = new CommandExecutor(queue);
         var cts = new CancellationTokenSource();
+        var mainCommand = new MainCommand(executor, cts.Token);
 
         // Act
-        Task.Run(() => executor.Execute(cts.Token));
+        mainCommand.Execute();
         Thread.Sleep(comandCount * 250);
         cts.Cancel();
 
