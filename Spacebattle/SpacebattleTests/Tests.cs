@@ -1,4 +1,6 @@
-﻿using Spacebattle.Interfaces;
+﻿using Spacebattle;
+using Spacebattle.Interfaces;
+using System.Collections.Concurrent;
 
 public class CommandExecutorTests
 {
@@ -6,13 +8,27 @@ public class CommandExecutorTests
     public void ICommand_ShouldStarCommand()
     {
         // Arrange
-        var command = new TestCommand(1);
+        var comandCount = 10;
+        var queue = new BlockingCollection<ICommand>();
+        for (var i = 0; i < comandCount; i++)
+        {
+            var command = new TestCommand(i + 1);
+            queue.Add(command);
+        }
+        var executor = new CommandExecutor(queue);
+        var cts = new CancellationTokenSource();
 
         // Act
-        command.Execute();
+        Task.Run(() => executor.Execute(cts.Token));
+        Thread.Sleep(comandCount * 250);
+        cts.Cancel();
 
         // Assert
-        Assert.True(command.StateComplete);
+        foreach (var command in queue)
+        {
+            var testCommand = command as TestCommand;
+            Assert.True(testCommand?.StateComplete);
+        }
     }
 
     private class TestCommand : ICommand
@@ -28,7 +44,7 @@ public class CommandExecutorTests
         public void Execute()
         {
             Console.WriteLine($"Запуск выполнения команды №{_id}");
-            Thread.Sleep(500);
+            Thread.Sleep(200);
             StateComplete = true;
             Console.WriteLine($"Команда №{_id} выполнена");
         }
