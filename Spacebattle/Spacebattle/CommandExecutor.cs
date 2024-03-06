@@ -14,9 +14,15 @@ namespace Spacebattle
 
         public void Execute(CancellationToken cancellationToken)
         {
+            InProgress = true;
             while (true)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    InProgress = false;
+                    break;
+                }
+
                 try
                 {
                     var command = _commandQueue.Take();
@@ -25,8 +31,14 @@ namespace Spacebattle
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Ошибка при выполнении команды: {ex.Message}");
+                    if (!_commandQueue.Any())
+                        Thread.Sleep(1000);
                 }
             }
         }
+
+        public int CommandCountInQueue => _commandQueue.Count;
+
+        public bool InProgress { get; private set; }
     }
 }

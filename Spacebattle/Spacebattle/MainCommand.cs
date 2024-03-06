@@ -14,5 +14,7 @@ namespace Spacebattle
         }
 
         public void Execute() => Task.Run(() => _commandExecutor.Execute(_cancellationToken));
+
+        public int CommandCountInExecutor => _commandExecutor.CommandCountInQueue;
     }
 }
