@@ -84,6 +84,29 @@ public class CommandExecutorTests
         }
     }
 
+    [Fact]
+    public void ChainMainCommand_ShouldExecuteChainCommand()
+    {
+        // Arrange
+        var func = (int num) =>
+        {
+            Console.WriteLine($"Команда{num}");
+            return Task.CompletedTask;
+        };
+        var command3 = new ChainCommand(() => func(3), null);
+        var command2 = new ChainCommand(() => func(2), command3);
+        var command1 = new ChainCommand(() => func(1), command2);
+
+        // Act
+        command1.Execute()
+            .GetAwaiter().GetResult();
+
+        // Assert
+        Assert.True(command1.Complete);
+        Assert.True(command2.Complete);
+        Assert.True(command3.Complete);
+    }
+
     private class TestCommand : ICommand
     {
         private readonly int _id;
