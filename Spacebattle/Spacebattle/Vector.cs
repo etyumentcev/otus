@@ -34,7 +34,7 @@ namespace Spacebattle
             //Задача 3
             if (a.Length == 0)
                 throw new ArgumentException("Пустой массив!!!");
-            
+                
             return new Vector<T>(a);
         }
 
