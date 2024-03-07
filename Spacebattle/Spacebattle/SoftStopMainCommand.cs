@@ -13,7 +13,7 @@ namespace Spacebattle
             _cts = cts;
         }
 
-        public void Execute()
+        public async Task Execute()
         {
             while (true)
             {
@@ -22,7 +22,7 @@ namespace Spacebattle
                     _cts.Cancel();
                     break;
                 }
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
             }
         }
     }

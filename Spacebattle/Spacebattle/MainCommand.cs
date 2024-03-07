@@ -13,7 +13,10 @@ namespace Spacebattle
             _cancellationToken = cancellationToken;
         }
 
-        public void Execute() => Task.Run(() => _commandExecutor.Execute(_cancellationToken));
+        public async Task Execute()
+        {
+            await _commandExecutor.Execute(_cancellationToken);
+        }
 
         public int CommandCountInExecutor => _commandExecutor.CommandCountInQueue;
     }

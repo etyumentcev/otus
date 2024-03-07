@@ -12,7 +12,7 @@ namespace Spacebattle
             _commandQueue = commandQueue;
         }
 
-        public void Execute(CancellationToken cancellationToken)
+        public async Task Execute(CancellationToken cancellationToken)
         {
             InProgress = true;
             while (true)
@@ -26,13 +26,13 @@ namespace Spacebattle
                 try
                 {
                     var command = _commandQueue.Take();
-                    command.Execute();
+                    await command.Execute();
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Ошибка при выполнении команды: {ex.Message}");
                     if (!_commandQueue.Any())
-                        Thread.Sleep(1000);
+                        await Task.Delay(1000);
                 }
             }
         }

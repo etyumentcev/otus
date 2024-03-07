@@ -94,10 +94,10 @@ public class CommandExecutorTests
 
         public bool StateComplete { get; private set; }
 
-        public void Execute()
+        public async Task Execute()
         {
             Console.WriteLine($"Запуск выполнения команды №{_id}");
-            Thread.Sleep(COMMAND_JOB_TIME);
+            await Task.Delay(COMMAND_JOB_TIME);
             StateComplete = true;
             Console.WriteLine($"Команда №{_id} выполнена");
         }

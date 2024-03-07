@@ -11,6 +11,10 @@ namespace Spacebattle
             _cts = cts;
         }
 
-        public void Execute() => _cts.Cancel();
+        public Task Execute()
+        {
+            _cts.Cancel();
+            return Task.CompletedTask;
+        }
     }
 }
