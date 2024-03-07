@@ -88,9 +88,13 @@ public class CommandExecutorTests
     public void ChainMainCommand_ShouldExecuteChainCommand()
     {
         // Arrange
-        var func = (int num) =>
+        var results = new List<int>(3);
+        var func = async (int num) =>
         {
+            if (num == 1)
+                await Task.Delay(100);
             Console.WriteLine($"Команда{num}");
+            results.Add(num);
             return Task.CompletedTask;
         };
         var command3 = new ChainCommand(() => func(3), null);
@@ -102,6 +106,9 @@ public class CommandExecutorTests
             .GetAwaiter().GetResult();
 
         // Assert
+        Assert.True(results[0] == 2);
+        Assert.True(results[1] == 3);
+        Assert.True(results[2] == 1);
         Assert.True(command1.Complete);
         Assert.True(command2.Complete);
         Assert.True(command3.Complete);

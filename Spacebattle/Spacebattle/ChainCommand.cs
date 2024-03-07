@@ -20,12 +20,18 @@ namespace Spacebattle
             _next = next;
         }
 
-        public async Task Execute()
+        public async Task Execute() 
         {
-            await _action.Invoke();
-            _complete = true;
+            var tasks = new List<Task>
+            {
+                _action.Invoke(),
+            };
+
             if (_next != null)
-                await _next.Execute();
+                tasks.Add(_next.Execute());
+
+            await Task.WhenAll(tasks);
+            _complete = true;
         }
 
         public bool Complete => _complete;
